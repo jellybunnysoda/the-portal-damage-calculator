@@ -15,6 +15,7 @@ for (const element of ELEMENTS) {
   $('targetElement').add(new Option(element, element));
 }
 const presetSelect=$('targetPreset');
+const DEFAULT_MONSTER_ID='cog_crab';
 const customGroup=document.createElement('optgroup');
 customGroup.label='Custom';
 customGroup.append(new Option('Custom', 'custom'));
@@ -26,6 +27,68 @@ for (const category of MONSTER_CATEGORIES) {
   presetSelect.append(group);
 }
 Object.entries(SKILL_CATALOG).forEach(([id, value]) => classSelect.add(new Option(value.name, id)));
+const classButton = $('classButton'), classMenu = $('classMenu');
+const classOptions = Object.entries(SKILL_CATALOG).map(([id, value]) => {
+  const option = document.createElement('button');
+  option.type = 'button';
+  option.className = 'classOption';
+  option.setAttribute('role', 'option');
+  option.dataset.classId = id;
+  const icon = document.createElement('img');
+  icon.src = `./assets/${id}.webp`;
+  icon.alt = '';
+  icon.width = icon.height = 30;
+  option.append(icon, document.createTextNode(value.name));
+  classMenu.append(option);
+  option.addEventListener('click', () => {
+    if (classSelect.value !== id) {
+      classSelect.value = id;
+      classSelect.dispatchEvent(new Event('change', {bubbles: true}));
+    }
+    closeClassMenu(true);
+  });
+  return option;
+});
+function syncClassPicker() {
+  const id = classSelect.value;
+  $('classIcon').src = `./assets/${id}.webp`;
+  $('classValue').textContent = SKILL_CATALOG[id]?.name ?? '';
+  classOptions.forEach(option => option.setAttribute('aria-selected', String(option.dataset.classId === id)));
+}
+function closeClassMenu(restoreFocus = false) {
+  classMenu.hidden = true;
+  classButton.setAttribute('aria-expanded', 'false');
+  if (restoreFocus) classButton.focus();
+}
+function openClassMenu(focusIndex = classOptions.findIndex(option => option.dataset.classId === classSelect.value)) {
+  classMenu.hidden = false;
+  classButton.setAttribute('aria-expanded', 'true');
+  classOptions[Math.max(0, focusIndex)]?.focus();
+}
+classButton.addEventListener('click', () => classMenu.hidden ? openClassMenu() : closeClassMenu());
+classButton.addEventListener('keydown', event => {
+  if (!['ArrowDown', 'ArrowUp'].includes(event.key)) return;
+  event.preventDefault();
+  const selected = classOptions.findIndex(option => option.dataset.classId === classSelect.value);
+  openClassMenu((selected + (event.key === 'ArrowDown' ? 1 : classOptions.length - 1)) % classOptions.length);
+});
+classMenu.addEventListener('keydown', event => {
+  const current = classOptions.indexOf(document.activeElement);
+  if (event.key === 'Escape' || event.key === 'Tab') { closeClassMenu(event.key === 'Escape'); return; }
+  if (['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) {
+    event.preventDefault();
+    const next = event.key === 'Home' ? 0 : event.key === 'End' ? classOptions.length - 1
+      : (current + (event.key === 'ArrowDown' ? 1 : classOptions.length - 1)) % classOptions.length;
+    classOptions[next]?.focus();
+  }
+});
+document.addEventListener('pointerdown', event => {
+  if (!event.target.closest('.classPicker')) closeClassMenu();
+});
+function skillIconPath(id) {
+  return ['enchanter', 'cleric', 'defender', 'warrior'].includes(classSelect.value) && id !== 'custom'
+    ? `./assets/skill_${id}.webp` : '';
+}
 weapon.value = '1H Staff';
 $('size').value = 'Medium';
 
@@ -43,7 +106,7 @@ function populateLevels() {
   levelSelect.replaceChildren();
   const skill = getSkill(classSelect.value, skillSelect.value);
   if (skill) {
-    skill.levels.forEach(row => levelSelect.add(new Option(`Lv. ${row.level} · Tier ${row.tier}`, String(row.level))));
+    skill.levels.forEach(row => levelSelect.add(new Option(`Lv. ${row.level}`, String(row.level))));
     levelSelect.disabled = false;
   } else {
     levelSelect.add(new Option('Custom', 'custom'));
@@ -94,6 +157,10 @@ function showBaseField(baseStat) {
   Object.entries(wrappers).forEach(([stat, id]) => { $(id).hidden = stat !== baseStat; });
 }
 function renderSkillInfo(skill, result) {
+  const summaryIcon = $('skillSummaryIcon');
+  const iconPath = skillIconPath(skill.skillId);
+  summaryIcon.hidden = !iconPath;
+  if (iconPath) summaryIcon.src = iconPath;
   $('skillName').textContent = skill.skillId === 'custom' ? 'Custom Skill' : `${skill.name} · Lv. ${skill.level}`;
   const parts = [
     skill.damageComponent === 'initialHit'
@@ -167,7 +234,11 @@ function render() {
   $('monsterPresetWrap').hidden = input.target.pvp;
   const monster=MONSTERS[presetSelect.value];
   $('monsterSummary').hidden = input.target.pvp || !monster;
-  if (monster) $('monsterSummary').textContent = `${monster.name} · ${monster.category} · ${input.target.pvp ? monster.size : $('size').value} · ${$('targetElement').value} · DEF ${$('targetDef').value} · MDEF ${$('targetMdef').value}`;
+  if (monster && !input.target.pvp) {
+    $('monsterIcon').src = `./assets/monster_${presetSelect.value}.webp`;
+    $('monsterName').textContent = monster.name;
+    $('monsterStats').textContent = `${monster.category} · ${$('size').value} · ${$('targetElement').value} · DEF ${$('targetDef').value} · MDEF ${$('targetMdef').value}`;
+  }
   $('customWrap').hidden = input.attacker.weapon !== 'Custom';
   for (const key of ['normal','critical','average','min','max','total']) $(key).textContent = fmt(r[key]);
   $('baseProjectileDamage').textContent = fmt(r.baseSkillDamage);
@@ -185,6 +256,7 @@ function render() {
   $('critNote').textContent = `ค่าเฉลี่ย = Normal × ${fmt((1-r.critRate)*100)}% + Critical × ${fmt(r.critRate*100)}%`;
 }
 classSelect.addEventListener('change', () => {
+  syncClassPicker();
   const defaults = {critRate: '5', critDamage: '120'};
   $('attackerStatFields').querySelectorAll('input[type="number"]').forEach(input => {
     input.value = defaults[input.dataset.field] ?? '0';
@@ -197,7 +269,7 @@ skillSelect.addEventListener('change', () => { populateLevels(); applySkillDefau
 levelSelect.addEventListener('change', () => { updateProjectileDefault(); render(); });
 let savedPresetTarget=null;
 let savedCustomTarget=null;
-let previousPreset='custom';
+let previousPreset=DEFAULT_MONSTER_ID;
 function targetSnapshot() {
   return {size:$('size').value,def:$('targetDef').value,mdef:$('targetMdef').value,element:$('targetElement').value};
 }
@@ -228,13 +300,21 @@ $('pvp').addEventListener('change', () => {
   }
   render();
 });
-fields.filter(el => ![classSelect, skillSelect, levelSelect, presetSelect, $('pvp')].includes(el)).forEach(el => el.addEventListener('input', render));
+fields.filter(el => ![classSelect, skillSelect, levelSelect, presetSelect, $('pvp')].includes(el)).forEach(el => el.addEventListener('input', () => {
+  if (['critRate', 'critDamage', 'damageUp'].includes(el.dataset.field) && el.value !== '' && Number(el.value) > Number(el.max)) {
+    el.value = el.max;
+  }
+  render();
+}));
 $('reset').addEventListener('click', () => {
   document.querySelector('form').reset();
   savedPresetTarget=null;
   savedCustomTarget=null;
-  previousPreset='custom';
+  previousPreset=DEFAULT_MONSTER_ID;
+  presetSelect.value=DEFAULT_MONSTER_ID;
+  setTarget(monsterDefaults(DEFAULT_MONSTER_ID));
   classSelect.value = 'enchanter';
+  syncClassPicker();
   populateSkills();
   applySkillDefaultElement();
   weapon.value = '1H Staff';
@@ -242,6 +322,9 @@ $('reset').addEventListener('click', () => {
   render();
 });
 classSelect.value = 'enchanter';
+syncClassPicker();
 populateSkills();
 applySkillDefaultElement();
+presetSelect.value=DEFAULT_MONSTER_ID;
+setTarget(monsterDefaults(DEFAULT_MONSTER_ID));
 render();

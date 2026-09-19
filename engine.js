@@ -57,12 +57,12 @@ export function calculate(input) {
   const ignore=clamp(a.ignoreDef,0,70)/100;
   const effectiveDefense=defenseBeforeIgnore*(1-ignore);
   const defenseReduction=Math.min(.9,effectiveDefense/(effectiveDefense+120));
-  const critRate=skill.canCrit === false ? 0 : clamp(a.critRate,0,100)/100;
+  const critRate=skill.canCrit === false ? 0 : clamp(a.critRate,0,85)/100;
   const maxProjectiles=skill.maxProjectiles == null ? null : Math.max(1,Math.floor(clamp(skill.maxProjectiles,1,999)));
   const hits=Math.max(1,Math.floor(clamp(skill.hits ?? 1,1,maxHits)));
   const stages=[
     ['Damage Base',1],['Damage Roll',1],['Skill',percentPerHit/100],
-    ['Critical',1],['Damage Up',1+nonnegative(a.damageUp)/100],
+    ['Critical',1],['Damage Up',1+clamp(a.damageUp,0,150)/100],
     ['Element',elementPercent/100],['Weapon Size',sizePct/100],
     ['DEF / MDEF',1-defenseReduction],['Block',1-clamp(t.block,0,100)/100],
     ['Damage Reduction',1-clamp(t.damageReduction,0,100)/100],
@@ -75,7 +75,7 @@ export function calculate(input) {
   function path(roll,critical){
     let value=attack;
     return stages.map(([label,factor])=>{
-      const f=label==='Damage Roll'?roll:label==='Critical'?(critical && skill.canCrit !== false ? nonnegative(a.critDamage)/100 : 1):factor;
+      const f=label==='Damage Roll'?roll:label==='Critical'?(critical && skill.canCrit !== false ? clamp(a.critDamage,0,300)/100 : 1):factor;
       value*=f;
       return {label,factor:f,value};
     });

@@ -19,14 +19,13 @@
         <div class="artCrop statusArt" aria-hidden="true"><img src="./assets/ui.png" alt="" width="1536" height="1024"></div>
         <section class="panel"><div class="sectionTitle"><span class="num">01</span><h2>Player</h2><small>ค่าสเตตัสของคุณ</small></div>
           <div class="grid skillPickers">
-            <label>Class<select data-field="classId" id="classSelect"></select></label>
-            <label>Skill<select data-field="skillId" id="skillSelect"></select></label>
-            <label>Skill Level<select data-field="skillLevel" id="levelSelect"></select></label>
+            <div class="classPicker"><span class="pickerLabel" id="classLabel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5 20 5v6.3c0 5-3.2 8.2-8 10.2-4.8-2-8-5.2-8-10.2V5l8-2.5Z"/><path d="m12 7.2 1.3 2.6 2.9.4-2.1 2 .5 2.9-2.6-1.4-2.6 1.4.5-2.9-2.1-2 2.9-.4L12 7.2Z"/></svg>Class</span><select data-field="classId" id="classSelect" class="nativeClassSelect" tabindex="-1" aria-hidden="true"></select><button type="button" id="classButton" class="classButton" aria-labelledby="classLabel classValue" aria-haspopup="listbox" aria-controls="classMenu" aria-expanded="false"><img id="classIcon" alt="" width="30" height="30"><span id="classValue"></span><span class="classChevron" aria-hidden="true"></span></button><div id="classMenu" class="classMenu" role="listbox" aria-label="Class" hidden></div></div>
+            <label><span class="pickerLabel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 19 10-10M3.5 20.5l3-3M16.5 3l.9 2.6L20 6.5l-2.6.9-.9 2.6-.9-2.6-2.6-.9 2.6-.9.9-2.6ZM20 12l.5 1.5L22 14l-1.5.5L20 16l-.5-1.5L18 14l1.5-.5L20 12Z"/></svg>Skill</span><select data-field="skillId" id="skillSelect"></select></label>
+            <label><span class="pickerLabel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h4v-5H4v5Zm6 0h4V9h-4v10Zm6 0h4V4h-4v15Z"/><path d="M3 21h18"/></svg>Skill Level</span><select data-field="skillLevel" id="levelSelect"></select></label>
           </div>
           <div id="skillSummary" class="skillSummary" aria-live="polite">
-            <strong id="skillName"></strong>
-            <div id="skillMeta" class="skillMeta"></div>
-            <p id="skillNote" class="info" hidden></p>
+            <img id="skillSummaryIcon" class="skillSummaryIcon" alt="" width="56" height="56" hidden>
+            <div class="skillSummaryText"><strong id="skillName"></strong><div id="skillMeta" class="skillMeta"></div><p id="skillNote" class="info" hidden></p></div>
           </div>
           <div id="projectileWrap" class="projectileControl" hidden>
             <label>Projectiles Hit <input data-field="projectilesHit" id="projectilesHit" type="number" min="1" step="1"></label>
@@ -52,18 +51,21 @@
             <label id="maxHpWrap" hidden>Max HP<input data-field="maxHp" type="number" min="0" value="2000"></label>
             <label id="attackerDefWrap" hidden>DEF (Attacker)<input data-field="attackerDef" type="number" min="0" value="0"></label>
             <label id="attackerMdefWrap" hidden>MDEF (Attacker)<input data-field="attackerMdef" type="number" min="0" value="0"></label>
-            <label>Crit Rate %<input data-field="critRate" type="number" min="0" max="100" value="5"></label>
-            <label>Crit Damage %<input data-field="critDamage" type="number" min="0" value="120"></label>
-            <label>Damage Up %<input data-field="damageUp" type="number" min="0" value="105"></label>
-            <label>Attack Element<select data-field="attackElement" id="attackElement"></select></label>
+            <label>Crit Rate % <small>สูงสุด 85%</small><input data-field="critRate" type="number" min="0" max="85" value="5"></label>
+            <label>Crit Damage % <small>สูงสุด 300%</small><input data-field="critDamage" type="number" min="0" max="300" value="120"></label>
+            <label>Damage Up % <small>สูงสุด 150%</small><input data-field="damageUp" type="number" min="0" max="150" value="105"></label>
+            <label>Element<select data-field="attackElement" id="attackElement"></select></label>
             <label>Weapon<select data-field="weapon" id="weapon"></select></label>
             <label id="customWrap" hidden>Weapon Size %<input data-field="customWeaponSize" type="number" min="0" value="100"></label>
             <label>IGN DEF % <small>สูงสุด 70%</small><input data-field="ignoreDef" type="number" min="0" max="70" value="0"></label>
           </div><div class="subheading">โบนัสหลังการป้องกัน</div><div class="grid three"><label>Race %<input data-field="raceBonus" type="number" min="0" value="0"></label><label>Size %<input data-field="sizeBonus" type="number" min="0" value="0"></label><label>Codex %<input data-field="codexBonus" type="number" min="0" value="0"></label></div>
         </section>
         <section class="panel"><div class="sectionTitle"><span class="num">02</span><h2>Target</h2><small>ข้อมูลเป้าหมาย</small></div>
-          <label id="monsterPresetWrap">Target Preset<select data-field="targetPreset" id="targetPreset"></select></label>
-          <p id="monsterSummary" class="presetSummary" hidden></p>
+          <label id="monsterPresetWrap">Monster<select data-field="targetPreset" id="targetPreset"></select></label>
+          <div id="monsterSummary" class="presetSummary" hidden>
+            <div class="monsterPortrait"><img id="monsterIcon" alt="" width="96" height="96"></div>
+            <div class="monsterDetails"><strong id="monsterName"></strong><span id="monsterStats"></span></div>
+          </div>
           <div class="grid targetGrid">
             <label id="targetSizeWrap">ขนาด<select data-field="size" id="size"></select></label>
             <label>Target Element<select data-field="targetElement" id="targetElement"></select></label>
