@@ -1,6 +1,6 @@
-import {calculate, calculateDotTick, WEAPON_SIZE, SIZES} from './engine.js';
-import {SKILL_CATALOG, getSkill, getSkillLevel, resolveSkill, customSkill} from './skills.js';
-import {ELEMENTS, MONSTER_CATEGORIES, MONSTERS, monsterDefaults} from './target-data.js';
+import {calculate, calculateDotTick, WEAPON_SIZE, SIZES} from './engine.js?v=20260920-0134';
+import {SKILL_CATALOG, getSkill, getSkillLevel, resolveSkill, customSkill} from './skills.js?v=20260920-0134';
+import {ELEMENTS, MONSTER_CATEGORIES, MONSTERS, monsterDefaults} from './target-data.js?v=20260920-0134';
 
 const $ = id => document.getElementById(id);
 const fmt = n => new Intl.NumberFormat('th-TH', {maximumFractionDigits: 2}).format(n);

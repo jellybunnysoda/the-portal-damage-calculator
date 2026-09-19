@@ -1,5 +1,5 @@
-import {BASE_STAT_FIELDS} from './skills.js';
-import {elementMatchupPercent} from './target-data.js';
+import {BASE_STAT_FIELDS} from './skills.js?v=20260920-0134';
+import {elementMatchupPercent} from './target-data.js?v=20260920-0134';
 
 export const WEAPON_SIZE = {
   '1H Blunt': [75,100,75], '1H Dagger': [100,75,50], '1H Staff': [100,100,100],
