@@ -1,6 +1,6 @@
 import {calculate, calculateDotTick, WEAPON_SIZE, SIZES} from './engine.js?v=20260920-0134';
 import {SKILL_CATALOG, getSkill, getSkillLevel, resolveSkill, customSkill} from './skills.js?v=20260920-0134';
-import {ELEMENTS, MONSTER_CATEGORIES, MONSTERS, monsterDefaults} from './target-data.js?v=20260920-0134';
+import {ELEMENTS, MONSTER_LOCATIONS, MONSTERS, monsterDefaults} from './target-data.js?v=20260920-enchanted-forest';
 
 const $ = id => document.getElementById(id);
 const fmt = n => new Intl.NumberFormat('th-TH', {maximumFractionDigits: 2}).format(n);
@@ -15,17 +15,35 @@ for (const element of ELEMENTS) {
   $('targetElement').add(new Option(element, element));
 }
 const presetSelect=$('targetPreset');
+const locationSelect=$('targetLocation');
+const monsterIcon=$('monsterIcon');
+monsterIcon.addEventListener('error', () => {
+  monsterIcon.hidden=true;
+  $('monsterFallback').hidden=false;
+});
 const DEFAULT_MONSTER_ID='cog_crab';
-const customGroup=document.createElement('optgroup');
-customGroup.label='Custom';
-customGroup.append(new Option('Custom', 'custom'));
-presetSelect.append(customGroup);
-for (const category of MONSTER_CATEGORIES) {
-  const group=document.createElement('optgroup');
-  group.label=category.name;
-  category.monsters.forEach(([id,name]) => group.append(new Option(name,id)));
-  presetSelect.append(group);
+MONSTER_LOCATIONS.forEach(location => locationSelect.add(new Option(location.name,location.id)));
+locationSelect.value='goblin_junkyard';
+function populateMonsterOptions(preferred=DEFAULT_MONSTER_ID) {
+  const location=MONSTER_LOCATIONS.find(item => item.id === locationSelect.value);
+  const allowed=new Set(location?.monsterIds ?? []);
+  presetSelect.replaceChildren();
+  const customGroup=document.createElement('optgroup');
+  customGroup.label='Custom';
+  customGroup.append(new Option('Custom', 'custom'));
+  presetSelect.append(customGroup);
+  for (const category of location?.categories ?? []) {
+    const options=category.monsters.filter(([id]) => allowed.has(id));
+    if (!options.length) continue;
+    const group=document.createElement('optgroup');
+    group.label=category.name;
+    options.forEach(([id,name]) => group.append(new Option(name,id)));
+    presetSelect.append(group);
+  }
+  presetSelect.value=preferred === 'custom' || allowed.has(preferred)
+    ? preferred : location?.monsterIds[0] ?? 'custom';
 }
+populateMonsterOptions();
 Object.entries(SKILL_CATALOG).forEach(([id, value]) => classSelect.add(new Option(value.name, id)));
 const classButton = $('classButton'), classMenu = $('classMenu');
 const classOptions = Object.entries(SKILL_CATALOG).map(([id, value]) => {
@@ -137,6 +155,7 @@ function selectedSkill(v) {
 }
 function read() {
   const v = readFields(), skill = selectedSkill(v);
+  const fixedMonster = !v.pvp && monsterDefaults(v.targetPreset);
   return {
     skill,
     attacker: {
@@ -147,8 +166,13 @@ function read() {
       ignoreDef: v.ignoreDef, raceBonus: v.raceBonus, sizeBonus: v.sizeBonus, codexBonus: v.codexBonus
     },
     target: {
-      def: v.def, mdef: v.mdef, size: v.pvp ? null : v.size, element: v.targetElement, block: v.block,
-      damageReduction: v.damageReduction, raceResistance: v.raceResistance, pvp: v.pvp
+      def: fixedMonster?.def ?? v.def, mdef: fixedMonster?.mdef ?? v.mdef,
+      size: v.pvp ? null : (fixedMonster?.size ?? v.size),
+      element: fixedMonster?.element ?? v.targetElement,
+      block: fixedMonster ? 0 : v.block,
+      damageReduction: fixedMonster ? 0 : v.damageReduction,
+      raceResistance: fixedMonster ? 0 : v.raceResistance,
+      pvp: v.pvp
     }
   };
 }
@@ -230,14 +254,18 @@ function render() {
     $('dotInterval').textContent = `~${fmt(dot.tickInterval)} sec`;
     $('dotDuration').textContent = `${fmt(dot.bellDuration)} sec`;
   }
+  $('targetGrid').hidden = !input.target.pvp && !!MONSTERS[presetSelect.value];
   $('targetSizeWrap').hidden = input.target.pvp;
-  $('monsterPresetWrap').hidden = input.target.pvp;
+  $('targetSelectors').hidden = input.target.pvp;
   const monster=MONSTERS[presetSelect.value];
   $('monsterSummary').hidden = input.target.pvp || !monster;
   if (monster && !input.target.pvp) {
-    $('monsterIcon').src = `./assets/monster_${presetSelect.value}.webp`;
+    monsterIcon.hidden=false;
+    $('monsterFallback').hidden=true;
+    const iconPath=`./assets/monster_${presetSelect.value}.webp`;
+    if (monsterIcon.getAttribute('src') !== iconPath) monsterIcon.src=iconPath;
     $('monsterName').textContent = monster.name;
-    $('monsterStats').textContent = `${monster.category} · ${$('size').value} · ${$('targetElement').value} · DEF ${$('targetDef').value} · MDEF ${$('targetMdef').value}`;
+    $('monsterStats').textContent = `${monster.category} · ${monster.size} · ${monster.element} · DEF ${monster.def} · MDEF ${monster.mdef}`;
   }
   $('customWrap').hidden = input.attacker.weapon !== 'Custom';
   for (const key of ['normal','critical','average','min','max','total']) $(key).textContent = fmt(r[key]);
@@ -271,13 +299,20 @@ let savedPresetTarget=null;
 let savedCustomTarget=null;
 let previousPreset=DEFAULT_MONSTER_ID;
 function targetSnapshot() {
-  return {size:$('size').value,def:$('targetDef').value,mdef:$('targetMdef').value,element:$('targetElement').value};
+  return {
+    size:$('size').value,def:$('targetDef').value,mdef:$('targetMdef').value,element:$('targetElement').value,
+    block:$('targetBlock').value,damageReduction:$('targetDamageReduction').value,
+    raceResistance:$('targetRaceResistance').value
+  };
 }
 function setTarget(snapshot) {
   $('size').value=snapshot.size;
   $('targetDef').value=snapshot.def;
   $('targetMdef').value=snapshot.mdef;
   $('targetElement').value=snapshot.element;
+  $('targetBlock').value=snapshot.block ?? 0;
+  $('targetDamageReduction').value=snapshot.damageReduction ?? 0;
+  $('targetRaceResistance').value=snapshot.raceResistance ?? 0;
 }
 presetSelect.addEventListener('change', () => {
   const monster=monsterDefaults(presetSelect.value);
@@ -290,17 +325,24 @@ presetSelect.addEventListener('change', () => {
   previousPreset=presetSelect.value;
   render();
 });
+locationSelect.addEventListener('change', () => {
+  const previousSelection=presetSelect.value;
+  populateMonsterOptions(previousSelection);
+  if (presetSelect.value !== 'custom') setTarget(monsterDefaults(presetSelect.value));
+  previousPreset=presetSelect.value;
+  render();
+});
 $('pvp').addEventListener('change', () => {
   if ($('pvp').checked && MONSTERS[presetSelect.value]) {
     savedPresetTarget=targetSnapshot();
-    setTarget({...savedPresetTarget,def:0,mdef:0,element:'Neutral'});
+    setTarget({size:'Medium',def:0,mdef:0,element:'Neutral'});
   } else if (!$('pvp').checked && savedPresetTarget) {
-    setTarget(savedPresetTarget);
+    setTarget(monsterDefaults(presetSelect.value));
     savedPresetTarget=null;
   }
   render();
 });
-fields.filter(el => ![classSelect, skillSelect, levelSelect, presetSelect, $('pvp')].includes(el)).forEach(el => el.addEventListener('input', () => {
+fields.filter(el => ![classSelect, skillSelect, levelSelect, locationSelect, presetSelect, $('pvp')].includes(el)).forEach(el => el.addEventListener('input', () => {
   if (['critRate', 'critDamage', 'damageUp'].includes(el.dataset.field) && el.value !== '' && Number(el.value) > Number(el.max)) {
     el.value = el.max;
   }
@@ -312,6 +354,8 @@ $('reset').addEventListener('click', () => {
   savedCustomTarget=null;
   previousPreset=DEFAULT_MONSTER_ID;
   presetSelect.value=DEFAULT_MONSTER_ID;
+  locationSelect.value='goblin_junkyard';
+  populateMonsterOptions(DEFAULT_MONSTER_ID);
   setTarget(monsterDefaults(DEFAULT_MONSTER_ID));
   classSelect.value = 'enchanter';
   syncClassPicker();

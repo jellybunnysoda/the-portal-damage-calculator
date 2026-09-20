@@ -6,7 +6,7 @@
   <title>The Portal Damage Calculator</title>
   <meta name="description" content="คำนวณความเสียหาย The Portal พร้อมค่าเฉลี่ย Critical และ breakdown ทุกขั้น">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23533627'/%3E%3Cpath d='M11 49 32 9l21 40-21-9z' fill='%23f5bd61' stroke='%232f1d17' stroke-width='4' stroke-linejoin='round'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="./style.css?v=20260920-large-uniform-guide">
+  <link rel="stylesheet" href="./style.css?v=20260920-uniform-monster-icons">
 </head>
 <body>
 <div class="shell">
@@ -61,20 +61,23 @@
           </div><div class="subheading">โบนัสหลังการป้องกัน</div><div class="grid three"><label>Race %<input data-field="raceBonus" type="number" min="0" value="0"></label><label>Size %<input data-field="sizeBonus" type="number" min="0" value="0"></label><label>Codex %<input data-field="codexBonus" type="number" min="0" value="0"></label></div>
         </section>
         <section class="panel"><div class="sectionTitle"><span class="num">02</span><h2>Target</h2><small>ข้อมูลเป้าหมาย</small></div>
-          <label id="monsterPresetWrap">Monster<select data-field="targetPreset" id="targetPreset"></select></label>
+          <div class="grid targetSelectors" id="targetSelectors">
+            <label id="targetLocationWrap">สถานที่<select data-field="targetLocation" id="targetLocation"></select></label>
+            <label id="monsterPresetWrap">ชื่อ Monster<select data-field="targetPreset" id="targetPreset"></select></label>
+          </div>
           <div id="monsterSummary" class="presetSummary" hidden>
-            <div class="monsterPortrait"><img id="monsterIcon" alt="" width="96" height="96"></div>
+            <div class="monsterPortrait"><img id="monsterIcon" alt="" width="96" height="96"><span id="monsterFallback" class="monsterFallback" aria-hidden="true" hidden>✦</span></div>
             <div class="monsterDetails"><strong id="monsterName"></strong><span id="monsterStats"></span></div>
           </div>
-          <div class="grid targetGrid">
+          <label class="check targetPvp"><input data-field="pvp" id="pvp" type="checkbox">PvP <small>ดาเมจ ÷10</small></label>
+          <div class="grid targetGrid" id="targetGrid">
             <label id="targetSizeWrap">ขนาด<select data-field="size" id="size"></select></label>
             <label>Target Element<select data-field="targetElement" id="targetElement"></select></label>
             <label>DEF<input data-field="def" id="targetDef" type="number" min="0" value="0"></label>
             <label>MDEF<input data-field="mdef" id="targetMdef" type="number" min="0" value="50"></label>
-            <label>Block %<input data-field="block" type="number" min="0" max="100" value="0"></label>
-            <label>Damage Reduction %<input data-field="damageReduction" type="number" min="0" max="100" value="0"></label>
-            <label>Race Resistance %<input data-field="raceResistance" type="number" min="0" max="100" value="0"></label>
-            <label class="check"><input data-field="pvp" id="pvp" type="checkbox">PvP <small>ดาเมจ ÷10</small></label>
+            <label>Block %<input data-field="block" id="targetBlock" type="number" min="0" max="100" value="0"></label>
+            <label>Damage Reduction %<input data-field="damageReduction" id="targetDamageReduction" type="number" min="0" max="100" value="0"></label>
+            <label>Race Resistance %<input data-field="raceResistance" id="targetRaceResistance" type="number" min="0" max="100" value="0"></label>
           </div><button type="button" id="reset">↺ รีเซ็ตค่าเริ่มต้น</button>
         </section>
       </form>
@@ -105,6 +108,6 @@
     </div>
   </section>
 </div>
-<script type="module" src="./app.js?v=20260920-0134"></script>
-<script type="module" src="./tutorial.js?v=20260920-large-uniform-guide"></script>
+<script type="module" src="./app.js?v=20260920-uniform-monster-icons"></script>
+<script type="module" src="./tutorial.js?v=20260920-goblin-junkyard"></script>
 </body></html>

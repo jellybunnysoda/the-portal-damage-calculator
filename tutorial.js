@@ -15,7 +15,7 @@ const steps = [
   },
   {
     title: 'เลือก Monster',
-    description: 'เลือก Monster แล้วปรับค่าของเป้าหมายให้ตรงกับที่ต้องการทดสอบ',
+    description: 'เลือกสถานที่และชื่อ Monster เพื่อใช้ค่าที่ระบบกำหนดไว้ หรือเลือก Custom / PvP เพื่อกรอกค่าเอง',
     image: './assets/tutorial-target.png',
     alt: 'ตัวอย่างส่วน Target แสดงการเลือกมอนสเตอร์และค่าป้องกัน'
   },

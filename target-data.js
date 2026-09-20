@@ -41,9 +41,47 @@ export const MONSTER_CATEGORIES = [
   {name: 'Boss', monsters: [['lycaros','Lycaros',300,75,'Large','Shadow']]}
 ];
 
-export const MONSTERS = Object.freeze(Object.fromEntries(MONSTER_CATEGORIES.flatMap(category =>
+export const FOREST_MONSTER_CATEGORIES = [
+  {name: 'Day', monsters: [
+    ['rootlash','Rootlash',160,40,'Medium','Wind'],
+    ['brittlecap','Brittlecap',150,38,'Small','Fire'],
+    ['sagefrog','Sagefrog',190,48,'Small','Poison'],
+    ['bellrope','Bellrope',200,50,'Medium','Earth'],
+    ['parasol','Parasol',266,67,'Large','Earth'],
+    ['splinter','Splinter',336,84,'Large','Wind'],
+    ['sir_brankal','Sir Brankal',360,90,'Large','Neutral']
+  ]},
+  {name: 'Night', monsters: [
+    ['glasscap','Glasscap',170,43,'Small','Water'],
+    ['inklash','Inklash',180,45,'Medium','Shadow'],
+    ['ghostfrog','Ghostfrog',220,55,'Small','Ghost'],
+    ['spigot','Spigot',200,50,'Medium','Water'],
+    ['lilac','Lilac',230,58,'Small','Holy'],
+    ['anemone','Anemone',240,60,'Medium','Ghost'],
+    ['nocturne','Nocturne',266,67,'Large','Undead'],
+    ['clinker','Clinker',336,84,'Large','Shadow'],
+    ['queen_bakung','Queen Bakung',450,113,'Large','Holy']
+  ]}
+];
+
+export const MONSTERS = Object.freeze(Object.fromEntries([...MONSTER_CATEGORIES, ...FOREST_MONSTER_CATEGORIES].flatMap(category =>
   category.monsters.map(([id,name,def,mdef,size,element]) =>
     [id,Object.freeze({name,category:category.name,def,mdef,size,element})]))));
+
+export const MONSTER_LOCATIONS = Object.freeze([
+  Object.freeze({
+    id: 'goblin_junkyard',
+    name: 'Goblin Junkyard',
+    categories: MONSTER_CATEGORIES,
+    monsterIds: Object.freeze(MONSTER_CATEGORIES.flatMap(category => category.monsters.map(([id]) => id)))
+  }),
+  Object.freeze({
+    id: 'enchanted_forest',
+    name: 'Enchanted Forest',
+    categories: FOREST_MONSTER_CATEGORIES,
+    monsterIds: Object.freeze(FOREST_MONSTER_CATEGORIES.flatMap(category => category.monsters.map(([id]) => id)))
+  })
+]);
 
 // Return a copy, so editing target fields never changes the shared preset.
 export function monsterDefaults(id) {
