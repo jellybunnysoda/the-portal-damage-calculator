@@ -6,7 +6,7 @@
   <title>The Portal Damage Calculator</title>
   <meta name="description" content="คำนวณความเสียหาย The Portal พร้อมค่าเฉลี่ย Critical และ breakdown ทุกขั้น">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23533627'/%3E%3Cpath d='M11 49 32 9l21 40-21-9z' fill='%23f5bd61' stroke='%232f1d17' stroke-width='4' stroke-linejoin='round'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="./style.css?v=20260920-0134">
+  <link rel="stylesheet" href="./style.css?v=20260920-tutorial">
 </head>
 <body>
 <div class="shell">
@@ -86,9 +86,25 @@
         <section class="panel details"><div class="sectionTitle"><span class="num">04</span><h2 id="breakdownTitle">Formula breakdown</h2></div><p id="sizeInfo" class="info"></p><p id="defInfo" class="info"></p><div class="tableWrap"><table><thead><tr><th>ขั้นตอน</th><th>ตัวคูณ</th><th>Normal</th><th>Critical</th></tr></thead><tbody id="breakdown"></tbody></table></div><p class="foot">ใช้ทศนิยมตลอดทาง ผลจริงในเกมอาจต่างจากการปัดเศษลงระหว่างขั้น</p></section>
       </div>
     </div>
-    <footer>THE PORTAL · Damage engine v1</footer>
+    <footer><span>THE PORTAL · Damage engine v1</span><button type="button" id="tutorialReplay" class="tutorialReplay">? ดูวิธีใช้</button></footer>
   </main>
 </div>
 <div class="groundArt" aria-hidden="true"></div>
+<div id="tutorial" class="tutorialOverlay" hidden>
+  <section class="tutorialDialog" role="dialog" aria-modal="true" aria-labelledby="tutorialTitle" aria-describedby="tutorialDescription">
+    <img class="tutorialGuide" src="./assets/tutorial-guide.png" width="230" height="230" alt="ผู้ช่วยถือไม้ชี้อธิบายวิธีใช้">
+    <div class="tutorialBubble">
+      <span id="tutorialProgress" class="tutorialProgress"></span>
+      <h2 id="tutorialTitle"></h2>
+      <p id="tutorialDescription"></p>
+      <p id="tutorialTip" class="tutorialTip"></p>
+      <div class="tutorialControls">
+        <button type="button" id="tutorialSkip" class="tutorialSkip">ข้ามไกด์</button>
+        <div class="tutorialNav"><button type="button" id="tutorialBack" class="tutorialBack">ย้อนกลับ</button><button type="button" id="tutorialNext" class="tutorialNext">ถัดไป</button></div>
+      </div>
+    </div>
+  </section>
+</div>
 <script type="module" src="./app.js?v=20260920-0134"></script>
+<script type="module" src="./tutorial.js?v=20260920-tutorial"></script>
 </body></html>
