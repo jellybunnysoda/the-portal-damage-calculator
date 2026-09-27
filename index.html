@@ -6,18 +6,29 @@
   <title>The Portal Damage Calculator</title>
   <meta name="description" content="คำนวณความเสียหาย The Portal พร้อมค่าเฉลี่ย Critical และ breakdown ทุกขั้น">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23533627'/%3E%3Cpath d='M11 49 32 9l21 40-21-9z' fill='%23f5bd61' stroke='%232f1d17' stroke-width='4' stroke-linejoin='round'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="./style.css?v=20260920-uniform-monster-icons">
+  <link rel="stylesheet" href="./style.css?v=20260925-sticky-nav">
 </head>
 <body>
+<nav class="stickyNav" aria-label="เมนูทางลัด">
+  <div class="stickyNavInner">
+    <a class="stickyBrand" href="#top" aria-label="กลับไปด้านบน"><span>✦</span><strong>THE PORTAL</strong></a>
+    <div class="stickyLinks">
+      <a href="#playerSection"><span>01</span> Player</a>
+      <a href="#targetSection"><span>02</span> Target</a>
+      <a href="#resultsSection"><span>03</span> Results</a>
+      <button type="button" id="topTutorial">? วิธีใช้</button>
+    </div>
+  </div>
+</nav>
 <div class="shell">
-  <main>
+  <main id="top">
     <header class="workspaceTitle">
       <div class="titleCopy"><p class="eyebrow">THE PORTAL · DAMAGE CALCULATOR</p><h1>คำนวณดาเมจของคุณ</h1></div>
     </header>
     <div class="layout">
       <form class="inputs" autocomplete="off">
         <div class="artCrop statusArt" aria-hidden="true"><img src="./assets/ui.png" alt="" width="1536" height="1024"></div>
-        <section class="panel"><div class="sectionTitle"><span class="num">01</span><h2>Player</h2><small>ค่าสเตตัสของคุณ</small></div>
+        <section class="panel" id="playerSection"><div class="sectionTitle"><span class="num">01</span><h2>Player</h2><small>ค่าสเตตัสของคุณ</small></div>
           <div class="grid skillPickers">
             <div class="classPicker"><span class="pickerLabel" id="classLabel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5 20 5v6.3c0 5-3.2 8.2-8 10.2-4.8-2-8-5.2-8-10.2V5l8-2.5Z"/><path d="m12 7.2 1.3 2.6 2.9.4-2.1 2 .5 2.9-2.6-1.4-2.6 1.4.5-2.9-2.1-2 2.9-.4L12 7.2Z"/></svg>Class</span><select data-field="classId" id="classSelect" class="nativeClassSelect" tabindex="-1" aria-hidden="true"></select><button type="button" id="classButton" class="classButton" aria-labelledby="classLabel classValue" aria-haspopup="listbox" aria-controls="classMenu" aria-expanded="false"><img id="classIcon" alt="" width="30" height="30"><span id="classValue"></span><span class="classChevron" aria-hidden="true"></span></button><div id="classMenu" class="classMenu" role="listbox" aria-label="Class" hidden></div></div>
             <label><span class="pickerLabel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 19 10-10M3.5 20.5l3-3M16.5 3l.9 2.6L20 6.5l-2.6.9-.9 2.6-.9-2.6-2.6-.9 2.6-.9.9-2.6ZM20 12l.5 1.5L22 14l-1.5.5L20 16l-.5-1.5L18 14l1.5-.5L20 12Z"/></svg>Skill</span><select data-field="skillId" id="skillSelect"></select></label>
@@ -55,12 +66,15 @@
             <label>Crit Damage % <small>สูงสุด 300%</small><input data-field="critDamage" type="number" min="0" max="300" value="120"></label>
             <label>Damage Up % <small>สูงสุด 150%</small><input data-field="damageUp" type="number" min="0" max="150" value="105"></label>
             <label>Element<select data-field="attackElement" id="attackElement"></select></label>
-            <label>Weapon<select data-field="weapon" id="weapon"></select></label>
+            <label>Main Hand Weapon<select data-field="weapon" id="weapon"></select></label>
+            <label id="dualWieldWrap" class="check dualWieldToggle"><input data-field="dualWield" id="dualWield" type="checkbox">Dual Wield <small>ต่อ Swing ×0.8</small></label>
+            <label id="offHandWrap" hidden>Off Hand Weapon<select data-field="offHandWeapon" id="offHandWeapon"><option value="1H Sword">1H Sword</option><option value="1H Dagger">1H Dagger</option></select></label>
+            <div id="dualWieldInfo" class="dualWieldInfo" hidden><strong>Dual Wield — Weapon Size</strong><span>ค่า Weapon Size ของ Main Hand และ Off Hand จะถูกนำมาเฉลี่ยกันตามขนาดเป้าหมาย</span><code>(Main Hand + Off Hand) ÷ 2</code></div>
             <label id="customWrap" hidden>Weapon Size %<input data-field="customWeaponSize" type="number" min="0" value="100"></label>
             <label>IGN DEF % <small>สูงสุด 70%</small><input data-field="ignoreDef" type="number" min="0" max="70" value="0"></label>
-          </div><div class="subheading">โบนัสหลังการป้องกัน</div><div class="grid three"><label>Race %<input data-field="raceBonus" type="number" min="0" value="0"></label><label>Size %<input data-field="sizeBonus" type="number" min="0" value="0"></label><label>Codex %<input data-field="codexBonus" type="number" min="0" value="0"></label></div>
+          </div><div class="subheading bonusHeading"><span>Bonus</span><small>⚠️ กรอกเฉพาะค่าที่ได้รับจาก SS Race / SS Size / Codex ฺ</small></div><div class="grid three"><label>Race %<input data-field="raceBonus" type="number" min="0" value="0"></label><label>Size %<input data-field="sizeBonus" type="number" min="0" value="0"></label><label>Codex %<input data-field="codexBonus" type="number" min="0" value="0"></label></div>
         </section>
-        <section class="panel"><div class="sectionTitle"><span class="num">02</span><h2>Target</h2><small>ข้อมูลเป้าหมาย</small></div>
+        <section class="panel" id="targetSection"><div class="sectionTitle"><span class="num">02</span><h2>Target</h2><small>ข้อมูลเป้าหมาย</small></div>
           <div class="grid targetSelectors" id="targetSelectors">
             <label id="targetLocationWrap">สถานที่<select data-field="targetLocation" id="targetLocation"></select></label>
             <label id="monsterPresetWrap">ชื่อ Monster<select data-field="targetPreset" id="targetPreset"></select></label>
@@ -81,7 +95,7 @@
           </div><button type="button" id="reset">↺ รีเซ็ตค่าเริ่มต้น</button>
         </section>
       </form>
-      <div class="results">
+      <div class="results" id="resultsSection">
         <div class="artCrop resultsArt" aria-hidden="true"><img src="./assets/ui.png" alt="" width="1536" height="1024"></div>
         <section class="heroResult"><div class="resultTop"><span id="averageLabel">✦ ค่าเฉลี่ยต่อ Hit</span><span class="live">● ผลลัพธ์</span></div><div class="big" id="average">0</div><div id="critNote" class="formula"></div><div class="resultMini"><div><span>NORMAL HIT</span><strong id="normal">0</strong></div><div><span>CRITICAL HIT</span><strong id="critical">0</strong></div></div></section>
         <section class="panel roll"><div class="sectionTitle"><span class="num">03</span><h2>Damage Roll</h2><small>90–110%</small></div><div class="range"><div><span>ต่ำสุด / Hit</span><strong id="min">0</strong></div><div><span>สูงสุด / Hit</span><strong id="max">0</strong></div></div><p id="avgRange"></p><div id="projectileMetrics" class="projectileMetrics" hidden><div><span>Damage per Projectile (ก่อนตัวคูณอื่น)</span><strong id="baseProjectileDamage">0</strong></div><div><span>Average Damage per Projectile</span><strong id="averageProjectileDamage">0</strong></div><div><span>Maximum possible projectiles</span><strong id="maxPossibleProjectiles">0</strong></div></div><div class="total"><span><span id="totalLabel">Total Expected Damage</span> <b id="hitsOut"></b></span><strong id="total">0</strong></div></section>
@@ -108,6 +122,6 @@
     </div>
   </section>
 </div>
-<script type="module" src="./app.js?v=20260920-uniform-monster-icons"></script>
-<script type="module" src="./tutorial.js?v=20260920-goblin-junkyard"></script>
+<script type="module" src="./app.js?v=20260925-dual-wield"></script>
+<script type="module" src="./tutorial.js?v=20260925-sticky-nav"></script>
 </body></html>

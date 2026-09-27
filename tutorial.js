@@ -1,5 +1,6 @@
 const tutorial = document.getElementById('tutorial');
 const replay = document.getElementById('tutorialReplay');
+const topReplay = document.getElementById('topTutorial');
 const back = document.getElementById('tutorialBack');
 const next = document.getElementById('tutorialNext');
 const skip = document.getElementById('tutorialSkip');
@@ -53,6 +54,7 @@ function openTutorial() {
   tutorial.hidden = false;
   document.body.classList.add('tutorialOpen');
   document.querySelector('.shell').inert = true;
+  document.querySelector('.stickyNav').inert = true;
   next.focus();
 }
 
@@ -64,6 +66,7 @@ function closeTutorial() {
     tutorial.classList.remove('isClosing');
     document.body.classList.remove('tutorialOpen');
     document.querySelector('.shell').inert = false;
+    document.querySelector('.stickyNav').inert = false;
     if (previousFocus instanceof HTMLElement && previousFocus !== document.body) previousFocus.focus({preventScroll:true});
     else document.getElementById('classButton').focus({preventScroll:true});
   }, window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 350);
@@ -88,6 +91,7 @@ next.addEventListener('click', () => {
 
 skip.addEventListener('click', closeTutorial);
 replay.addEventListener('click', openTutorial);
+topReplay.addEventListener('click', openTutorial);
 
 tutorial.addEventListener('keydown', event => {
   if (event.key === 'Escape') {

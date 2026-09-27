@@ -8,6 +8,8 @@ export const WEAPON_SIZE = {
 };
 export const SIZES = ['Small','Medium','Large'];
 export const PVP_MULTIPLIER = 0.1; // Final damage step: divide by 10 once.
+export const DUAL_WIELD_WEAPONS = ['1H Sword','1H Dagger'];
+export const DUAL_WIELD_MULTIPLIER = 0.8;
 const clamp = (n,min,max) => Math.min(max,Math.max(min,Number.isFinite(+n)?+n:0));
 const nonnegative = n => clamp(n,0,Number.MAX_SAFE_INTEGER);
 const namedBaseFormulas = new Map();
@@ -51,7 +53,10 @@ export function calculate(input) {
   const elementPercent=a.attackElement != null && t.element != null
     ? elementMatchupPercent(a.attackElement,t.element) : nonnegative(a.element ?? 100);
   const sizeIndex=Math.max(0,SIZES.indexOf(t.size));
-  const sizePct=isPvP ? 100 : (a.weapon==='Custom'?nonnegative(a.customWeaponSize):WEAPON_SIZE[a.weapon]?.[sizeIndex] ?? 100);
+  const dualWield=Boolean(a.dualWield) && DUAL_WIELD_WEAPONS.includes(a.weapon) && DUAL_WIELD_WEAPONS.includes(a.offHandWeapon);
+  const mainHandSizePct=a.weapon==='Custom'?nonnegative(a.customWeaponSize):WEAPON_SIZE[a.weapon]?.[sizeIndex] ?? 100;
+  const offHandSizePct=dualWield ? WEAPON_SIZE[a.offHandWeapon][sizeIndex] : null;
+  const sizePct=isPvP ? 100 : dualWield ? (mainHandSizePct+offHandSizePct)/2 : mainHandSizePct;
   const defRaw=nonnegative(magical?t.mdef:t.def);
   const defenseBeforeIgnore=defRaw*(magical?2:1);
   const ignore=clamp(a.ignoreDef,0,70)/100;
@@ -61,7 +66,7 @@ export function calculate(input) {
   const maxProjectiles=skill.maxProjectiles == null ? null : Math.max(1,Math.floor(clamp(skill.maxProjectiles,1,999)));
   const hits=Math.max(1,Math.floor(clamp(skill.hits ?? 1,1,maxHits)));
   const stages=[
-    ['Damage Base',1],['Damage Roll',1],['Skill',percentPerHit/100],
+    ['Damage Base',1],['Damage Roll',1],['Dual Wield',dualWield?DUAL_WIELD_MULTIPLIER:1],['Skill',percentPerHit/100],
     ['Critical',1],['Damage Up',1+clamp(a.damageUp,0,150)/100],
     ['Element',elementPercent/100],['Weapon Size',sizePct/100],
     ['DEF / MDEF',1-defenseReduction],['Block',1-clamp(t.block,0,100)/100],
@@ -99,7 +104,9 @@ export function calculate(input) {
     damagePercent:skillPercent,damagePercentPerHit:percentPerHit,
     damagePercentType:skill.damagePercentType ?? 'perHit',
     damageType:skill.damageType,baseStat:skill.baseStat,
-    normalPath,criticalPath,critRate,defenseBeforeIgnore,effectiveDefense,defenseReduction,sizePct,ignore,elementPercent
+    normalPath,criticalPath,critRate,defenseBeforeIgnore,effectiveDefense,defenseReduction,sizePct,
+    dualWield,dualWieldMultiplier:dualWield?DUAL_WIELD_MULTIPLIER:1,mainHandSizePct,
+    offHandSizePct,isWeaponSizeApplied:!isPvP,ignore,elementPercent
   };
 }
 

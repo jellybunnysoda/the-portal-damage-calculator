@@ -1,4 +1,4 @@
-import {calculate, calculateDotTick, WEAPON_SIZE, SIZES} from './engine.js?v=20260920-0134';
+import {calculate, calculateDotTick, DUAL_WIELD_WEAPONS, WEAPON_SIZE, SIZES} from './engine.js?v=20260925-dual-wield';
 import {SKILL_CATALOG, getSkill, getSkillLevel, resolveSkill, customSkill} from './skills.js?v=20260920-0134';
 import {ELEMENTS, MONSTER_LOCATIONS, MONSTERS, monsterDefaults} from './target-data.js?v=20260920-enchanted-forest';
 
@@ -8,6 +8,7 @@ const pct = n => `${fmt(n * 100)}%`;
 const fields = [...document.querySelectorAll('[data-field]')];
 const classSelect = $('classSelect'), skillSelect = $('skillSelect'), levelSelect = $('levelSelect');
 const weapon = $('weapon');
+const dualWield = $('dualWield'), offHandWeapon = $('offHandWeapon');
 Object.keys(WEAPON_SIZE).forEach(name => weapon.add(new Option(name, name)));
 SIZES.forEach(name => $('size').add(new Option(name, name)));
 for (const element of ELEMENTS) {
@@ -163,6 +164,7 @@ function read() {
       matk: v.matk, patk: v.patk, maxHp: v.maxHp, def: v.attackerDef, mdef: v.attackerMdef,
       critRate: v.critRate, critDamage: v.critDamage, damageUp: v.damageUp,
       attackElement: v.attackElement, weapon: v.weapon, customWeaponSize: v.customWeaponSize,
+      dualWield: v.dualWield, offHandWeapon: v.offHandWeapon,
       ignoreDef: v.ignoreDef, raceBonus: v.raceBonus, sizeBonus: v.sizeBonus, codexBonus: v.codexBonus
     },
     target: {
@@ -268,6 +270,13 @@ function render() {
     $('monsterStats').textContent = `${monster.category} · ${monster.size} · ${monster.element} · DEF ${monster.def} · MDEF ${monster.mdef}`;
   }
   $('customWrap').hidden = input.attacker.weapon !== 'Custom';
+  const canDualWield=DUAL_WIELD_WEAPONS.includes(input.attacker.weapon);
+  if (!canDualWield && dualWield.checked) dualWield.checked=false;
+  dualWield.disabled=!canDualWield;
+  $('dualWieldWrap').classList.toggle('isDisabled',!canDualWield);
+  const dualActive=canDualWield && dualWield.checked;
+  $('offHandWrap').hidden=!dualActive;
+  $('dualWieldInfo').hidden=!dualActive;
   for (const key of ['normal','critical','average','min','max','total']) $(key).textContent = fmt(r[key]);
   $('baseProjectileDamage').textContent = fmt(r.baseSkillDamage);
   $('averageProjectileDamage').textContent = fmt(r.average);
@@ -277,9 +286,13 @@ function render() {
     ? `ช่วงค่าเฉลี่ยตาม Roll ต่อ Hit: ${fmt(r.averageMin)}–${fmt(r.averageMax)} · รวม ${r.hits} Hit: ${fmt(r.totalMin)}–${fmt(r.totalMax)}`
     : `ช่วงค่าเฉลี่ยตาม Roll: ${fmt(r.averageMin)}–${fmt(r.averageMax)}`;
   $('defInfo').textContent = `${r.damageType === 'magic' ? 'MDEF ×2' : 'DEF'} ${fmt(r.defenseBeforeIgnore)} → หลัง IGN ${fmt(r.effectiveDefense)} → ลด ${pct(r.defenseReduction)}`;
-  $('sizeInfo').textContent = input.target.pvp ? 'Weapon Size และ Damage vs Size: N/A (PvP)' : `${input.attacker.weapon} vs ${input.target.size}: ${fmt(r.sizePct)}%`;
+  $('sizeInfo').textContent = input.target.pvp
+    ? `Weapon Size และ Damage vs Size: N/A (PvP)${r.dualWield ? ' · Dual Wield ต่อ Swing ×0.8' : ''}`
+    : r.dualWield
+      ? `Dual Wield — Weapon Size: ${input.attacker.weapon} ${fmt(r.mainHandSizePct)}% + ${input.attacker.offHandWeapon} ${fmt(r.offHandSizePct)}% ÷ 2 = ${fmt(r.sizePct)}% · ต่อ Swing ×0.8`
+      : `${input.attacker.weapon} vs ${input.target.size}: ${fmt(r.sizePct)}%`;
   $('breakdown').innerHTML = r.normalPath.map((step, i) =>
-    `<tr><td><span class="step">${String(i+1).padStart(2,'0')}</span>${step.label}${step.label === 'Element' ? `<br><small>${input.attacker.attackElement} → ${input.target.element} (${fmt(r.elementPercent)}%)</small>` : ''}</td><td>${input.target.pvp && ['Weapon Size','Size bonus'].includes(step.label) ? 'N/A (PvP)' : `×${fmt(step.factor)}${step.label === 'PvP' && input.target.pvp ? ' (÷10)' : ''}`}</td><td>${fmt(step.value)}</td><td>${i < 3 ? '' : fmt(r.criticalPath[i].value)}</td></tr>`
+    `<tr><td><span class="step">${String(i+1).padStart(2,'0')}</span>${step.label}${step.label === 'Element' ? `<br><small>${input.attacker.attackElement} → ${input.target.element} (${fmt(r.elementPercent)}%)</small>` : step.label === 'Dual Wield' && r.dualWield ? `<br><small>Main Hand: 80% · Off Hand: 80%</small>` : step.label === 'Weapon Size' && r.dualWield && !input.target.pvp ? `<br><small>Main ${fmt(r.mainHandSizePct)}% · Off ${fmt(r.offHandSizePct)}% · Average ${fmt(r.sizePct)}%</small>` : ''}</td><td>${input.target.pvp && ['Weapon Size','Size bonus'].includes(step.label) ? 'N/A (PvP)' : `×${fmt(step.factor)}${step.label === 'PvP' && input.target.pvp ? ' (÷10)' : ''}`}</td><td>${fmt(step.value)}</td><td>${['Damage Base','Damage Roll','Dual Wield','Skill'].includes(step.label) ? '' : fmt(r.criticalPath[i].value)}</td></tr>`
   ).join('');
   $('critNote').textContent = `ค่าเฉลี่ย = Normal × ${fmt((1-r.critRate)*100)}% + Critical × ${fmt(r.critRate*100)}%`;
 }
