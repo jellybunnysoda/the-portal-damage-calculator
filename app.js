@@ -1,5 +1,5 @@
-import {calculate, calculateDotTick, DUAL_WIELD_WEAPONS, WEAPON_SIZE, SIZES} from './engine.js?v=20260925-dual-wield';
-import {SKILL_CATALOG, getSkill, getSkillLevel, resolveSkill, customSkill} from './skills.js?v=20260920-0134';
+import {calculate, calculateDotTick, DUAL_WIELD_WEAPONS, WEAPON_SIZE, SIZES} from './engine.js?v=20261013-defender-skills';
+import {SKILL_CATALOG, getSkill, getSkillLevel, resolveSkill, customSkill} from './skills.js?v=20261013-defender-skills';
 import {ELEMENTS, MONSTER_LOCATIONS, MONSTERS, monsterDefaults} from './target-data.js?v=20260920-enchanted-forest';
 
 const $ = id => document.getElementById(id);
@@ -178,9 +178,10 @@ function read() {
     }
   };
 }
-function showBaseField(baseStat) {
+function showBaseField(skill) {
   const wrappers = {MATK: 'matkWrap', PATK: 'patkWrap', MAX_HP: 'maxHpWrap', DEF: 'attackerDefWrap', MDEF: 'attackerMdefWrap'};
-  Object.entries(wrappers).forEach(([stat, id]) => { $(id).hidden = stat !== baseStat; });
+  const required = new Set(skill.baseFormula?.terms?.map(term => term.stat) ?? [skill.baseStat]);
+  Object.entries(wrappers).forEach(([stat, id]) => { $(id).hidden = !required.has(stat); });
 }
 function renderSkillInfo(skill, result) {
   const summaryIcon = $('skillSummaryIcon');
@@ -198,7 +199,8 @@ function renderSkillInfo(skill, result) {
       : skill.damagePercentType === 'total'
       ? `Total Skill Damage ${fmt(skill.damagePercent)}%`
       : `Skill Damage ${fmt(skill.damagePercent)}%`,
-    `Base ${skill.baseStat.replace('_', ' ')}`,
+    skill.classId === 'defender' && skill.skillId !== 'timber_charge'
+      ? 'Base 0.7 DEF + P.ATK' : `Base ${skill.baseStat.replace('_', ' ')}`,
     skill.damageType === 'magic' ? 'Magic' : 'Physical'
   ];
   if (skill.hitMode === 'single') parts.push('Hits 1');
@@ -212,6 +214,7 @@ function renderSkillInfo(skill, result) {
     parts.push(`Base damage per Hit ${fmt(result.baseSkillDamage)}`);
   }
   if (skill.cooldown != null) parts.push(`Cooldown ${fmt(skill.cooldown)}`);
+  if (skill.metadata?.provisionalDamage) parts.push('⚠️ Damage และจำนวน Slash ของ Lv.13–24 ใช้ค่า Lv.12 ชั่วคราว');
   if (skill.mpCost != null) parts.push(`MP ${fmt(skill.mpCost)}`);
   if (skill.metadata?.tier) parts.push(`Tier ${skill.metadata.tier}`);
   if (skill.metadata?.intRequired != null) parts.push(`INT ${skill.metadata.intRequired}`);
@@ -241,7 +244,7 @@ function renderSkillInfo(skill, result) {
     ? `สูงสุด ${skill.maxProjectiles} ลูก · แต่ละลูกคิด Roll และ Crit แยกกัน` : '';
   $('averageLabel').textContent = skill.dot?.enabled ? '✦ Initial Hit · Expected Damage'
     : skill.hitMode === 'projectile' ? '✦ Average Damage per Projectile' : '✦ ค่าเฉลี่ยต่อ Hit';
-  showBaseField(skill.baseStat);
+  showBaseField(skill);
 }
 function render() {
   const input = read(), skill = input.skill, r = calculate(input);

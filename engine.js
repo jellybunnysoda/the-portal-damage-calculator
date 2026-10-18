@@ -1,4 +1,4 @@
-import {BASE_STAT_FIELDS} from './skills.js?v=20260920-0134';
+import {BASE_STAT_FIELDS} from './skills.js?v=20261013-defender-skills';
 import {elementMatchupPercent} from './target-data.js?v=20260920-0134';
 
 export const WEAPON_SIZE = {
